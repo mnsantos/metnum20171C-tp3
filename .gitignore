@@ -39,3 +39,6 @@ Thumbs.db
 # CSV files #
 #####################
 *.csv
+
+# Python files #
+.pyc
