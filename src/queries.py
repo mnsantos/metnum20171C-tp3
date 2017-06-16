@@ -3,7 +3,7 @@ from datetime import datetime
 import collections
 from collections import OrderedDict
 
-def paises(database):
+def paises(c):
 	c.execute("SELECT pais FROM Paises ORDER BY pais ASC")
 	rows = c.fetchall()
 	paises = []
@@ -12,7 +12,7 @@ def paises(database):
 	paises = list(OrderedDict.fromkeys(paises))
 	return paises
 
-def years_paises(c):
+def anios_paises(c):
 	c.execute("SELECT fecha FROM Paises ORDER BY fecha ASC")
 	rows = c.fetchall()
 	years = []
@@ -23,9 +23,22 @@ def years_paises(c):
 	years = list(OrderedDict.fromkeys(years))
 	return years
 
-
+def temperaturas_anio(paises, anio, c):
+	temps = []
+	for p in paises:
+		query = "SELECT tempProm, fecha FROM Paises WHERE pais = '{}' AND fecha IN ('{}-01-01 00:00:00', '{}-04-01 00:00:00', '{}-07-01 00:00:00','{}-10-01 00:00:00')".format(p, anio, anio, anio, anio)
+		c.execute(query)
+		rows = c.fetchall()
+		for row in rows:
+			temps.append(row[0])
+	return temps
 
 conn = lite.connect("temperaturas.db")
 c = conn.cursor()
-#print years_paises(c)
-print paises(c)
+#c.execute("SELECT fecha FROM Paises WHERE pais = 'Argentina' ORDER BY date(fecha) DESC")
+#rows = c.fetchall()
+#for row in rows:
+#	print row
+#print anios_paises(c)
+#print paises(c)
+#print temperaturas_anio(['Iceland'], 2000, c)
