@@ -61,8 +61,23 @@ def temperaturas_global(anios, c):
 			temps.append(row[0])
 	return temps
 
+def ciudades_de_pais(pais, anios):
+	temps = []
+	for anio in anios:
+		ts = []
+		query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE pais = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(pais, anio, anio)
+		c.execute(query)
+		rows = c.fetchall()
+		for row in rows:
+			ts.append(row[0:3])
+		temps.append(ts)
+	return temps
 
-# c.execute("SELECT * FROM Mundo")
+# conn = lite.connect("temperaturas.db")
+# c = conn.cursor()
+# print ciudades_de_pais('Argentina', [1999,2000])
+
+# c.execute("SELECT * FROM Ciudades")
 # rows = c.fetchall()
 # for row in rows:
 # 	print row
