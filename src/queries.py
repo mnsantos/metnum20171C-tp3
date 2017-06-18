@@ -23,22 +23,50 @@ def anios_paises(c):
 	years = list(OrderedDict.fromkeys(years))
 	return years
 
-def temperaturas_anio(paises, anio, c):
+def temperaturas_estacion_anios(paises, anios, c):
 	temps = []
-	for p in paises:
-		query = "SELECT tempProm, fecha FROM Paises WHERE pais = '{}' AND fecha IN ('{}-01-01 00:00:00', '{}-04-01 00:00:00', '{}-07-01 00:00:00','{}-10-01 00:00:00')".format(p, anio, anio, anio, anio)
+	for anio in anios:
+		ts = []
+		for p in paises:
+			query = "SELECT tempProm FROM Paises WHERE pais = '{}' AND fecha IN ('{}-01-01 00:00:00', '{}-04-01 00:00:00', '{}-07-01 00:00:00','{}-10-01 00:00:00')".format(p, anio, anio, anio, anio)
+			c.execute(query)
+			rows = c.fetchall()
+			for row in rows:
+				ts.append(row[0])
+		temps.append(ts)
+	return temps
+
+def temperaturas_promedio_anios(paises, anios, c):
+	temps = []
+	for anio in anios:
+		ts = []
+		for p in paises:
+			query = "SELECT tempProm FROM Paises WHERE pais = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(p, anio, anio)
+			c.execute(query)
+			rows = c.fetchall()
+			temps_anio = []
+			for row in rows:
+				temps_anio.append(row[0])
+			ts.append(sum(temps_anio) / len(temps_anio))
+		temps.append(ts)
+	return temps
+
+def temperaturas_global(anios, c):
+	temps = []
+	for anio in anios:
+		query = "SELECT tempProm FROM Mundo WHERE fecha = '{}-01-01 00:00:00'".format(anio)
 		c.execute(query)
 		rows = c.fetchall()
 		for row in rows:
 			temps.append(row[0])
 	return temps
 
-conn = lite.connect("temperaturas.db")
-c = conn.cursor()
-#c.execute("SELECT fecha FROM Paises WHERE pais = 'Argentina' ORDER BY date(fecha) DESC")
-#rows = c.fetchall()
-#for row in rows:
-#	print row
+
+# c.execute("SELECT * FROM Mundo")
+# rows = c.fetchall()
+# for row in rows:
+# 	print row
 #print anios_paises(c)
 #print paises(c)
-#print temperaturas_anio(['Iceland'], 2000, c)
+#print temperaturas_anios(['Iceland'], [2000,2001,2002], c)
+#print temperaturas_global([2000,2001,2002], c)
