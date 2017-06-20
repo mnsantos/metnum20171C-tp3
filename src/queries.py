@@ -89,6 +89,27 @@ def ciudades_anios(ciudades, anios, c):
 		temps.append(ts)
 	return temps
 
+def ciudades_similares(ciudad, limite, anios):
+	temps = []
+	queryLat_Long = "SELECT latitud, longitud FROM Ciudades WHERE ciudad = '{}' LIMIT 1".format(ciudad)
+	print queryLat_Long
+	c.execute(queryLat_Long)
+	rows = c.fetchall()
+	row = rows[0]
+	print row
+	lat1 = row[0]
+	long1 = row[1]
+	for anio in anios:
+		ts = []
+		query = "SELECT ciudad, pais FROM Ciudades WHERE (latitud BETWEEN ({}-{}) AND ({}+{}) OR longitud BETWEEN ({}-{}) AND ({}+{})) AND ciudad != '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(lat1, limite, lat1, limite, long1, limite, long1, limite, ciudad, anio, anio)
+		print query
+		c.execute(query)
+		rows = c.fetchall()
+		for row in rows:
+			ts.append(row[0:2])
+		temps.append(ts)
+	return temps
+
 # def temperaturas_ciudad_anios(ciudad, anios, c):
 # 	temps = []
 # 	for anio in anios:
