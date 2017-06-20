@@ -89,26 +89,57 @@ def ciudades_anios(ciudades, anios, c):
 		temps.append(ts)
 	return temps
 
-def ciudades_similares(ciudad, limite, anios):
+def ciudades_similares(ciudad, limite):
 	temps = []
 	queryLat_Long = "SELECT latitud, longitud FROM Ciudades WHERE ciudad = '{}' LIMIT 1".format(ciudad)
-	print queryLat_Long
 	c.execute(queryLat_Long)
 	rows = c.fetchall()
 	row = rows[0]
-	print row
 	lat1 = row[0]
 	long1 = row[1]
+	ciudades = []
+	query = "SELECT DISTINCT ciudad, latitud, longitud FROM Ciudades WHERE (latitud BETWEEN ({}-{}) AND ({}+{}) OR longitud BETWEEN ({}-{}) AND ({}+{})) AND ciudad != '{}' ORDER BY pais".format(lat1, limite, lat1, limite, long1, limite, long1, limite, ciudad)
+	c.execute(query)
+	rows = c.fetchall()
+	for row in rows:
+		ciudades.append(row[0])
+	return ciudades
+
+def temperaturas_por_fechas_paises(paises, fechas):
+	query = "SELECT fecha, tempProm, "
+	for pais in paises:
+		query += "(SELECT tempProm from Paises WHERE pais = '"+pais+"' AND fecha = fecha), "
+	query = query[:-2]
+	query += " FROM Mundo WHERE fecha IN ("
+	for fecha in fechas:
+		query += "'"+fecha+"', "
+	query = query[:-2]
+	query += ") "
+	c.execute(query)
+	rows = c.fetchall()
+	return rows
+
+def temperaturas_por_fechas_ciudades(ciudades, fechas):
+	query = "SELECT fecha, "
+	for ciudad in ciudades:
+		query += "(SELECT tempProm from Ciudades WHERE ciudad = '{}' AND fecha = fecha), ".format(ciudad.encode('utf-8'))
+	query = query[:-2]
+	query += " FROM Ciudades WHERE fecha IN ("
+	for fecha in fechas:
+		query += "'{}', ".format(fecha)
+	query = query[:-2]
+	query += ") ORDER BY fecha"
+	print query
+	c.execute(query)
+	rows = c.fetchall()
+	return rows
+
+def todos_los_meses_de(anios):
+	fechas = []
 	for anio in anios:
-		ts = []
-		query = "SELECT ciudad, pais FROM Ciudades WHERE (latitud BETWEEN ({}-{}) AND ({}+{}) OR longitud BETWEEN ({}-{}) AND ({}+{})) AND ciudad != '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(lat1, limite, lat1, limite, long1, limite, long1, limite, ciudad, anio, anio)
-		print query
-		c.execute(query)
-		rows = c.fetchall()
-		for row in rows:
-			ts.append(row[0:2])
-		temps.append(ts)
-	return temps
+		for mes in range(1,13):
+			fechas.append('{}-{}-01 00:00:00'.format(anio, str(mes).zfill(2)))
+	return fechas
 
 # def temperaturas_ciudad_anios(ciudad, anios, c):
 # 	temps = []
@@ -125,9 +156,13 @@ def ciudades_similares(ciudad, limite, anios):
 # 		temps.append(ts)
 # 	return temps
 
-# conn = lite.connect("temperaturas.db")
-# c = conn.cursor()
-# print ciudades_de_pais('Argentina', [1999,2000])
+conn = lite.connect("temperaturas.db")
+c = conn.cursor()
+similares = ciudades_similares('Tucuman', 0)
+#print similares
+fechas = todos_los_meses_de(range(1980, 1991))
+#print fechas
+print temperaturas_por_fechas_ciudades(similares, fechas)
 
 # c.execute("SELECT * FROM Ciudades")
 # rows = c.fetchall()
