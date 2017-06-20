@@ -61,17 +61,48 @@ def temperaturas_global(anios, c):
 			temps.append(row[0])
 	return temps
 
-def ciudades_de_pais(pais, anios):
+def ciudades_de_pais(pais, anios, c):
 	temps = []
 	for anio in anios:
 		ts = []
-		query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE pais = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(pais, anio, anio)
+		query = "SELECT ciudad, tempProm, latitud, longitud FROM Ciudades WHERE pais = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(pais, anio, anio)
 		c.execute(query)
 		rows = c.fetchall()
 		for row in rows:
-			ts.append(row[0:3])
+			ts.append(row[0:4])
 		temps.append(ts)
 	return temps
+
+def ciudades_anios(ciudades, anios, c):
+	temps = []
+	for anio in anios:
+		ts = []
+		for ciudad in ciudades:
+			query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE ciudad = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(ciudad, anio, anio)
+			c.execute(query)
+			rows = c.fetchall()
+			temps_anio = []
+			for row in rows:
+				temps_anio.append(row[0])
+			temp_prom = sum(temps_anio)/len(temps_anio)
+			ts = ts + [temp_prom,rows[0][1], rows[0][2]]
+		temps.append(ts)
+	return temps
+
+# def temperaturas_ciudad_anios(ciudad, anios, c):
+# 	temps = []
+# 	for anio in anios:
+# 		ts = []
+# 		for p in paises:
+# 			query = "SELECT tempProm FROM Paises WHERE pais = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(p, anio, anio)
+# 			c.execute(query)
+# 			rows = c.fetchall()
+# 			temps_anio = []
+# 			for row in rows:
+# 				temps_anio.append(row[0])
+# 			ts.append(sum(temps_anio) / len(temps_anio))
+# 		temps.append(ts)
+# 	return temps
 
 # conn = lite.connect("temperaturas.db")
 # c = conn.cursor()
