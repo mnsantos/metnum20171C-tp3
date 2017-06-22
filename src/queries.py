@@ -174,8 +174,8 @@ conn = lite.connect("temperaturas.db")
 c = conn.cursor()
 
 
-similares = ciudades_similares('Tucuman', 0)
-print ciudades_anios_v2(similares[0:2], 1980, 1981, c)
+#similares = ciudades_similares('Tucuman', 0)
+#print ciudades_anios_v2(similares[0:2], 1980, 1981, c)
 
 
 #print similares
