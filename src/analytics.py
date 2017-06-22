@@ -110,6 +110,7 @@ def cross_validation_ciudades(anios_train, anios_test, ciudades, ciudad_objetivo
 def cross_validation_ciudades_meses_v2(anios_train_inicio, anios_train_fin, anios_test_inicio, anios_test_fin, ciudades, ciudad_objetivo, c):
 
 	A = ciudades_anios_v2(ciudades, anios_train_inicio, anios_train_fin, c)
+	A = np.sin(A)
 	b = ciudades_anios_v2([ciudad_objetivo], anios_train_inicio, anios_train_fin, c)
 
 	##print cities
@@ -117,32 +118,47 @@ def cross_validation_ciudades_meses_v2(anios_train_inicio, anios_train_fin, anio
 	#A = [(ciudad[0] / distancia(ciudad[1],ciudad[2],ciudad_obj[0][1],ciudad_obj[0][2])) for ciudad in cities]
 	##A = [ciudad[0] for ciudad in cities]
 
-	#print A
-	#print b
+	#print A.shape
+	#print b.shape
 	coeficientes = cml(A, b)
 
-	print coeficientes
-	anios = range(anios_test_inicio, anios_test_fin+1)
+	#print len(coeficientes)
+	anios = range(anios_train_inicio, anios_train_fin+1)
+	anios = anios + range(anios_test_inicio, anios_test_fin+1)
 #
 	ciudades_test = ciudades_anios_v2(ciudades, anios_test_inicio, anios_test_fin, c)
+	ciudades_test = np.sin(ciudades_test)
 	#ciudades_test = [(ciudad[0] / distancia(ciudad[1],ciudad[2],ciudad_obj[0][1],ciudad_obj[0][2])) for ciudad in ciudades_test]
 	##ciudades_test = [ciudad[0] for ciudad in ciudades_test]
 	ciudad_objetivo_test = ciudades_anios_v2([ciudad_objetivo], anios_test_inicio, anios_test_fin, c)
 	#temperaturas_ciudad_objetivo_test = [c_anio[0] for c_anio in ciudad_objetivo_test]
 #
-	ciudades_as = np.vstack((A, ciudades_test)) 
+	
+	#print A.shape, ciudades_test.shape
+	ciudades_as = np.vstack((A, ciudades_test))
 	##print temperaturas_paises_anios
 
 	temperaturas_ciudad_objetivo_anios = np.vstack((b, ciudad_objetivo_test)) 
 	##print temperaturas_global_anios
 #
-	predicciones = []
 	for ci in ciudades_as:
 		prediccion = np.dot(ci, coeficientes)
-		predicciones.append(prediccion)
-	print predicciones
-	print temperaturas_ciudad_objetivo_anios
-	graficar_lineas(temperaturas_ciudad_objetivo_anios, predicciones, anios, 'Temperatura ciudad real')
+		try:
+			predicciones
+		except NameError:
+			predicciones = prediccion
+		else:
+			predicciones = np.vstack((predicciones, prediccion))
+	#print predicciones.shape
+	#print temperaturas_ciudad_objetivo_anios.shape
+	#print len(todos_los_meses_de(anios))
+	fechas = todos_los_meses_de(anios)
+	labels = []
+	for fecha in fechas:
+		label = fecha[0:-9]
+		labels.append(label)
+	print labels
+	graficar_lineas(temperaturas_ciudad_objetivo_anios, predicciones, labels, 'Temperatura ciudad real')
 
 conn = lite.connect("temperaturas.db")
 c = conn.cursor()
@@ -150,7 +166,7 @@ c = conn.cursor()
 # cross_validation_paises_estacion_global([1980,1981,1982,1983,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994],paises,[1995,1996,1997,1998,1999,2000,2001,2002],c)
 # cross_validation_paises_promedio_global([1980,1981,1982,1983,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994],paises,[1995,1996,1997,1998,1999,2000,2001,2002],c)
 
-cross_validation_ciudades_meses_v2(1980,1991,1992,1996,['Tucuman'],'Santiago_Del_Estero',c)
+cross_validation_ciudades_meses_v2(1980,1981,1992,1993,['Tucuman'],'Santiago_Del_Estero',c)
 # print ciudades_de_pais('Argentina', [1990], c)
 # newport_ri = (41.49008, -71.312796)
 # cleveland_oh = (41.499498, -81.695391)

@@ -91,17 +91,23 @@ def ciudades_anios(ciudades, anios, c):
 	return temps
 
 def ciudades_anios_v2(ciudades, inicio, fin, c):
-	matriz = []
 	for ciudad in ciudades:
-		fila = []
+		fila = np.array([])
 		print "procesando ciudad " + ciudad.encode('utf-8')
 		query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE ciudad = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00' ORDER BY fecha".format(ciudad.encode('utf-8'), inicio, fin)
 		c.execute(query)
 		rows = c.fetchall()
+		print ciudad.encode('utf-8'), len(rows)
 		for row in rows:
-			fila.append(row[0])
-		matriz.append(fila)
-	return np.array(matriz).transpose()
+			fila = np.append(fila, row[0])
+		fila = fila.reshape(fila.size, 1)
+		try:
+			matriz
+		except NameError:
+			matriz = fila
+		else:
+			matriz = np.hstack((matriz, fila))
+	return matriz
 
 def ciudades_similares(ciudad, limite):
 	temps = []
