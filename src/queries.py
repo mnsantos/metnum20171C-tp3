@@ -2,6 +2,7 @@ import sqlite3 as lite
 from datetime import datetime
 import collections
 from collections import OrderedDict
+import numpy as np
 
 def paises(c):
 	c.execute("SELECT pais FROM Paises ORDER BY pais ASC")
@@ -78,7 +79,7 @@ def ciudades_anios(ciudades, anios, c):
 	for anio in anios:
 		ts = []
 		for ciudad in ciudades:
-			query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE ciudad = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(ciudad, anio, anio)
+			query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE ciudad = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(ciudad.encode('utf-8'), anio, anio)
 			c.execute(query)
 			rows = c.fetchall()
 			temps_anio = []
@@ -88,6 +89,19 @@ def ciudades_anios(ciudades, anios, c):
 			ts = ts + [temp_prom,rows[0][1], rows[0][2]]
 		temps.append(ts)
 	return temps
+
+def ciudades_anios_v2(ciudades, inicio, fin, c):
+	matriz = []
+	for ciudad in ciudades:
+		fila = []
+		print "procesando ciudad " + ciudad.encode('utf-8')
+		query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE ciudad = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00' ORDER BY fecha".format(ciudad.encode('utf-8'), inicio, fin)
+		c.execute(query)
+		rows = c.fetchall()
+		for row in rows:
+			fila.append(row[0])
+		matriz.append(fila)
+	return np.array(matriz).transpose()
 
 def ciudades_similares(ciudad, limite):
 	temps = []
@@ -158,11 +172,16 @@ def todos_los_meses_de(anios):
 
 conn = lite.connect("temperaturas.db")
 c = conn.cursor()
+
+
 similares = ciudades_similares('Tucuman', 0)
+print ciudades_anios_v2(similares[0:2], 1980, 1981, c)
+
+
 #print similares
-fechas = todos_los_meses_de(range(1980, 1991))
+#fechas = todos_los_meses_de(range(1980, 1991))
 #print fechas
-print temperaturas_por_fechas_ciudades(similares, fechas)
+#print temperaturas_por_fechas_ciudades(similares, fechas)
 
 # c.execute("SELECT * FROM Ciudades")
 # rows = c.fetchall()
