@@ -50,6 +50,7 @@ def temperaturas_promedio_anios(paises, anios, c):
 				temps_anio.append(row[0])
 			ts.append(sum(temps_anio) / len(temps_anio))
 		temps.append(ts)
+	temps = np.array(temps)
 	return temps
 
 def temperaturas_global(anios, c):
@@ -60,6 +61,7 @@ def temperaturas_global(anios, c):
 		rows = c.fetchall()
 		for row in rows:
 			temps.append(row[0])
+	temps = np.array(temps).reshape(len(temps), 1)
 	return temps
 
 def ciudades_de_pais(pais, anios, c):
@@ -92,21 +94,21 @@ def ciudades_anios(ciudades, anios, c):
 
 def ciudades_anios_v2(ciudades, inicio, fin, c):
 	for ciudad in ciudades:
-		fila = np.array([])
+		columna = np.array([])
 		print "procesando ciudad " + ciudad.encode('utf-8')
 		query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE ciudad = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00' ORDER BY fecha".format(ciudad.encode('utf-8'), inicio, fin)
 		c.execute(query)
 		rows = c.fetchall()
 		print ciudad.encode('utf-8'), len(rows)
 		for row in rows:
-			fila = np.append(fila, row[0])
-		fila = fila.reshape(fila.size, 1)
+			columna = np.append(columna, row[0])
+		columna = columna.reshape(columna.size, 1)
 		try:
 			matriz
 		except NameError:
-			matriz = fila
+			matriz = columna
 		else:
-			matriz = np.hstack((matriz, fila))
+			matriz = np.hstack((matriz, columna))
 	return matriz
 
 def ciudades_similares(ciudad, limite):
