@@ -9,8 +9,7 @@ def cml(filas, b):
 	coeficients = np.linalg.lstsq(A, b)[0]
 	return coeficients.tolist()
 
-def mse(featuresList, coeficients, actualValues):
-	predictions = [ np.dot(features, coeficients) for features in featuresList ]
+def mse(actualValues, predictions):
 	return mean_squared_error(actualValues, predictions)
 
 def distancia(lat1,long1,lat2,long2):
@@ -189,13 +188,61 @@ def cross_validation_ciudades_meses_v2(anios_train_inicio, anios_train_fin, anio
 	print labels
 	graficar_lineas(temperaturas_ciudad_objetivo_anios, predicciones, labels, 'Temperatura ciudad real')
 
+def cross_validation_anios_global(anios_train, anios_test, grado):
+	temperaturas_globales_train = temperaturas_global(anios_train, c)
+
+	fs = [pol_grado_n(grado,x) for x in anios_train]
+	coeficientes = cml(fs, temperaturas_globales_train)
+
+	#print coeficientes
+	predicciones = []
+	anios = anios_train + anios_test
+	for anio in anios:
+		prediccion = np.dot(pol_grado_n(grado,anio), coeficientes)
+		predicciones.append(prediccion)
+
+	temperaturas_globales_test = temperaturas_global(anios_test, c)
+	temperaturas_globales = temperaturas_globales_train + temperaturas_globales_test
+
+	graficar_lineas(temperaturas_globales, predicciones, anios, 'Temperatura global real')
+	return mse(temperaturas_globales, predicciones)
+
+def buscar_mejor_grado(anios_train, anios_test):
+	min = cross_validation_anios_global(anios_train, anios_test, 1)
+	grado_min = 1
+	for grado in range(2,80):
+		mse = cross_validation_anios_global(anios_train, anios_test, grado)
+		if (mse < min):
+			min = mse
+			grado_min = grado
+	return grado_min
+
+def pol_grado_n(n, x):
+	return [x ** i for i in range(0,n+1)] 
+
+def anios_vs_tempGlobal(c):
+	anios = anios_global(c)
+	temperaturas_globales = temperaturas_global(anios, c)
+	graficar(anios, temperaturas_globales, "Anios", "Temperatura global")
+
+
 conn = lite.connect("temperaturas.db")
 c = conn.cursor()
-paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
-# cross_validation_paises_estacion_global([1980,1981,1982,1983,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994],paises,[1995,1996,1997,1998,1999,2000,2001,2002],c)
-cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 
+#anios = anios_global(c)
+#print buscar_mejor_grado(anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)], anios[(len(anios)/2)+(len(anios)/4):-1])
+# paises = ['Argentina', 'Guatemala', 'Canada', 'Congo', 'Poland', 'China', 'Australia']
+# cross_validation_paises_estacion_global([1980,1981,1982,1983,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994],paises,[1995,1996,1997,1998,1999,2000,2001,2002],c)
+
+
+
+#Acá están los tres puntos del TP funcionando bien.
+#print cross_validation_anios_global(anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)], anios[(len(anios)/2)+(len(anios)/4):-1], 2)
+paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
+cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 # cross_validation_ciudades_meses_v2(1980,1981,1992,1993,['Canberra', 'Hobart', 'Sydney'],'Santiago_Del_Estero',c)
+
+
 # print ciudades_de_pais('Argentina', [1990], c)
 # newport_ri = (41.49008, -71.312796)
 # cleveland_oh = (41.499498, -81.695391)
@@ -205,3 +252,5 @@ cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 # rows = c.fetchall()
 # for row in rows:
 # 	print row
+
+# anios_vs_tempGlobal(c)

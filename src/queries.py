@@ -24,6 +24,17 @@ def anios_paises(c):
 	years = list(OrderedDict.fromkeys(years))
 	return years
 
+def anios_global(c):
+	c.execute("SELECT fecha FROM Mundo ORDER BY fecha ASC")
+	rows = c.fetchall()
+	years = []
+	for row in rows:
+		datetime_object = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
+		year = datetime_object.year
+		years.append(year)
+	years = list(OrderedDict.fromkeys(years))
+	return years
+
 def temperaturas_estacion_anios(paises, anios, c):
 	temps = []
 	for anio in anios:

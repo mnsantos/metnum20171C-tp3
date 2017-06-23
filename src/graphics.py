@@ -15,3 +15,14 @@ def graficar_lineas(actual_temps, predicted_temps, years, actual_label):
 	plt.ylabel('Temperatura (°C)'.decode('utf-8'))
 
 	plt.show()
+
+def graficar(xs, ys, xlabel, ylabel):
+	plt.ticklabel_format(useOffset=False)	
+	plt.scatter(xs,ys)
+	# Now add the legend with some customizations.
+	#plt.xticks(range(0,len(years)+1), years, rotation='vertical')	
+	plt.xlabel(xlabel)
+	plt.ylabel(ylabel)
+
+	plt.show()
+
