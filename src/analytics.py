@@ -225,6 +225,51 @@ def anios_vs_tempGlobal(c):
 	temperaturas_globales = temperaturas_global(anios, c)
 	graficar(anios, temperaturas_globales, "Anios", "Temperatura global")
 
+def aproximacion_altura_dist_latitud(ciudad, fecha, c):
+#def aproximacion_altura_dist_latitud(anios_train_inicio, anios_train_fin, anios_test_inicio, anios_test_fin, c):
+# Ciudad, altura, distancia_al_mar, latitud, longitud
+# (u'Cochabamba', [2558, 459, -16.87, -66.98])
+# (u'Cordoba', [177, 708, -31.35, -64.08])
+# (u'Helsinki', [0, 0, 60.27, 25.95])
+# (u'Jujuy', [1495, 533, -24.92, -65.62])
+# (u'Lima', [202, 0, -12.05, -77.26])
+# (u'Lusaka', [1123, 330, -15.27, 27.5])
+# (u'Moscow', [151, 900, 55.45, 36.85])
+# (u'New_York', [10, 0, 40.99, -74.56])
+# (u'Riyadh', [571, 400, 24.92, 46.11])
+# (u'Santiago_Del_Estero', [187, 658, -28.13, -64.55])
+# (u'Sydney', [0, 0, -34.56, 151.78])
+
+	ciudades = ['Cochabamba','Cordoba','Helsinki','Jujuy','Lima','Lusaka','Moscow', 'New_York','Riyadh','Santiago_Del_Estero','Sydney']
+	#fecha = '2000-01-01 00:00:00'
+
+	A = np.array([[2558, 459, -16.87],
+		[177, 708, -31.35],
+		[0, 0, 60.27],
+		[1495, 533, -24.92],
+		[202, 0, -12.05],
+		[1123, 330, -15.27],
+		[151, 900, 55.45],
+		[10, 0, 40.99],
+		[571, 400, 24.92],
+		[187, 658, -28.13],
+		[0, 0, -34.56]])
+	
+	b = ciudades_fecha(ciudades, fecha, c).transpose()
+	print A.shape, b.shape
+
+
+	coeficientes = cml(A, b)
+	print coeficientes
+
+	#data_ciudad = np.array([10, 0, 40.99])
+	#temp_real = ciudades_fecha([ciudad], fecha, c)
+	temp_aproximada = np.dot(A,coeficientes)
+
+	print b
+	print temp_aproximada
+	print mse(b, temp_aproximada)
+
 
 conn = lite.connect("temperaturas.db")
 c = conn.cursor()
@@ -236,12 +281,12 @@ c = conn.cursor()
 
 
 
-#Acá están los tres puntos del TP funcionando bien.
+#Aca estan los tres puntos del TP funcionando bien.
 #print cross_validation_anios_global(anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)], anios[(len(anios)/2)+(len(anios)/4):-1], 2)
-paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
-cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
+#paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
+#cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 # cross_validation_ciudades_meses_v2(1980,1981,1992,1993,['Canberra', 'Hobart', 'Sydney'],'Santiago_Del_Estero',c)
-
+aproximacion_altura_dist_latitud('New_York', '1990-01-01 00:00:00', c)
 
 # print ciudades_de_pais('Argentina', [1990], c)
 # newport_ri = (41.49008, -71.312796)
