@@ -287,7 +287,7 @@ c = conn.cursor()
 #paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
 #cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 # cross_validation_ciudades_meses_v2(1980,1981,1992,1993,['Canberra', 'Hobart', 'Sydney'],'Santiago_Del_Estero',c)
-aproximacion_altura_dist_latitud('Corrientes', '1990-06-01 00:00:00', c)
+aproximacion_altura_dist_latitud('Corrientes', '1990-04-01 00:00:00', c)
 
 # print ciudades_de_pais('Argentina', [1990], c)
 # newport_ri = (41.49008, -71.312796)
