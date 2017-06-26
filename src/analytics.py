@@ -230,6 +230,7 @@ def aproximacion_altura_dist_latitud(ciudad, fecha, c):
 # Ciudad, altura, distancia_al_mar, latitud, longitud
 # (u'Cochabamba', [2558, 459, -16.87, -66.98])
 # (u'Cordoba', [177, 708, -31.35, -64.08])
+# (u'Corrientes', [52, 0, -28.13, -59.09])
 # (u'Helsinki', [0, 0, 60.27, 25.95])
 # (u'Jujuy', [1495, 533, -24.92, -65.62])
 # (u'Lima', [202, 0, -12.05, -77.26])
@@ -256,19 +257,19 @@ def aproximacion_altura_dist_latitud(ciudad, fecha, c):
 		[0, 0, -34.56]])
 	
 	b = ciudades_fecha(ciudades, fecha, c).transpose()
-	print A.shape, b.shape
-
 
 	coeficientes = cml(A, b)
-	print coeficientes
 
-	#data_ciudad = np.array([10, 0, 40.99])
-	#temp_real = ciudades_fecha([ciudad], fecha, c)
-	temp_aproximada = np.dot(A,coeficientes)
+	data_ciudad = np.array([52, 920, -28.13])
+	temp_real = ciudades_fecha([ciudad], fecha, c)
+	temp_aproximada = np.dot(data_ciudad,coeficientes)
 
-	print b
-	print temp_aproximada
-	print mse(b, temp_aproximada)
+#	temp_aproximada = np.dot(A,coeficientes)
+#	for i in range(0,b.size):
+#		print ciudades[i], b[i], temp_aproximada[i]
+#	print np.sqrt(mse(b, temp_aproximada))
+
+	print ciudad, temp_real, temp_aproximada
 
 
 conn = lite.connect("temperaturas.db")
@@ -286,7 +287,7 @@ c = conn.cursor()
 #paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
 #cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 # cross_validation_ciudades_meses_v2(1980,1981,1992,1993,['Canberra', 'Hobart', 'Sydney'],'Santiago_Del_Estero',c)
-aproximacion_altura_dist_latitud('New_York', '1990-01-01 00:00:00', c)
+aproximacion_altura_dist_latitud('Corrientes', '1990-06-01 00:00:00', c)
 
 # print ciudades_de_pais('Argentina', [1990], c)
 # newport_ri = (41.49008, -71.312796)
