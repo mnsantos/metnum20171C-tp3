@@ -122,6 +122,25 @@ def ciudades_anios_v2(ciudades, inicio, fin, c):
 			matriz = np.hstack((matriz, columna))
 	return matriz
 
+def ciudades_fecha(ciudades, fecha, c):
+	for ciudad in ciudades:
+		columna = np.array([])
+		print "procesando ciudad " + ciudad.encode('utf-8')
+		query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE ciudad = '{}' AND fecha = '{}'".format(ciudad.encode('utf-8'), fecha)
+		c.execute(query)
+		rows = c.fetchall()
+		print ciudad.encode('utf-8'), len(rows)
+		for row in rows:
+			columna = np.append(columna, row[0])
+		columna = columna.reshape(columna.size, 1)
+		try:
+			matriz
+		except NameError:
+			matriz = columna
+		else:
+			matriz = np.hstack((matriz, columna))
+	return matriz
+
 def ciudades_similares(ciudad, limite):
 	temps = []
 	queryLat_Long = "SELECT latitud, longitud FROM Ciudades WHERE ciudad = '{}' LIMIT 1".format(ciudad)

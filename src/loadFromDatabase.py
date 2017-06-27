@@ -120,8 +120,7 @@ insertartMedicionesMundo("temperaturas.db")
 
 # conn = lite.connect("temperaturas.db")
 # c = conn.cursor()
-# c.execute("SELECT * FROM Mundo")
+# c.execute("SELECT DISTINCT ciudad, latitud, longitud FROM Ciudades WHERE ciudad IN ('Lima','Cochabamba','Moscow','New_York', 'Cordoba','Santiago_Del_Estero','Helsinki','Sydney','Riyadh','Lusaka','Jujuy')")
 # rows = c.fetchall()
-
 # for row in rows:
 # 	print row
