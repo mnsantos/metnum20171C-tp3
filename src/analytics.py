@@ -1,6 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 from sklearn.metrics import mean_squared_error
 from queries import *
+import geocoder
 from graphics import *
 #from geopy.distance import vincenty
 
@@ -191,6 +195,8 @@ def cross_validation_ciudades_meses_v2(anios_train_inicio, anios_train_fin, anio
 def cross_validation_anios_global(anios_train, anios_test, grado):
 	temperaturas_globales_train = temperaturas_global(anios_train, c)
 
+	#print temperaturas_globales_train
+
 	fs = [pol_grado_n(grado,x) for x in anios_train]
 	coeficientes = cml(fs, temperaturas_globales_train)
 
@@ -198,20 +204,24 @@ def cross_validation_anios_global(anios_train, anios_test, grado):
 	predicciones = []
 	anios = anios_train + anios_test
 	for anio in anios:
+		#print pol_grado_n(grado,anio)
+		#print coeficientes
 		prediccion = np.dot(pol_grado_n(grado,anio), coeficientes)
 		predicciones.append(prediccion)
 
 	temperaturas_globales_test = temperaturas_global(anios_test, c)
 	temperaturas_globales = temperaturas_globales_train + temperaturas_globales_test
 
-	graficar_lineas(temperaturas_globales, predicciones, anios, 'Temperatura global real')
+	graficar_lineas(temperaturas_globales, predicciones, anios, 'Temperatura global real', 'aproximacion.png')
 	return mse(temperaturas_globales, predicciones)
 
 def buscar_mejor_grado(anios_train, anios_test):
 	min = cross_validation_anios_global(anios_train, anios_test, 1)
 	grado_min = 1
+	print grado_min, min
 	for grado in range(2,80):
 		mse = cross_validation_anios_global(anios_train, anios_test, grado)
+		print grado, mse
 		if (mse < min):
 			min = mse
 			grado_min = grado
@@ -223,21 +233,29 @@ def pol_grado_n(n, x):
 def anios_vs_tempGlobal(c):
 	anios = anios_global(c)
 	temperaturas_globales = temperaturas_global(anios, c)
-	graficar(anios, temperaturas_globales, "Anios", "Temperatura global")
+	graficar(anios, temperaturas_globales, "Años".decode('utf-8'), "Temperatura global", "anios_vs_tempGlobal")
 
 
 conn = lite.connect("temperaturas.db")
 c = conn.cursor()
 
 #anios = anios_global(c)
-#print buscar_mejor_grado(anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)], anios[(len(anios)/2)+(len(anios)/4):-1])
+#anios = anios[len(anios)/2:-1]
+#print anios
+#anios_train = anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)]
+#anios_train = anios[0: (len(anios)/2)]
+#print anios_train
+#anios_test = anios[(len(anios)/2)+(len(anios)/4):-1]
+#anios_test = anios[(len(anios)/2):-1]
+#print anios_test
+#buscar_mejor_grado(anios_train, anios_test)
+#print cross_validation_anios_global(anios_train, anios_test, 2)
 # paises = ['Argentina', 'Guatemala', 'Canada', 'Congo', 'Poland', 'China', 'Australia']
 # cross_validation_paises_estacion_global([1980,1981,1982,1983,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994],paises,[1995,1996,1997,1998,1999,2000,2001,2002],c)
 
 
 
-#Acá están los tres puntos del TP funcionando bien.
-#print cross_validation_anios_global(anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)], anios[(len(anios)/2)+(len(anios)/4):-1], 2)
+#Aca estan los tres puntos del TP funcionando bien.
 paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
 cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 # cross_validation_ciudades_meses_v2(1980,1981,1992,1993,['Canberra', 'Hobart', 'Sydney'],'Santiago_Del_Estero',c)
@@ -253,4 +271,8 @@ cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 # for row in rows:
 # 	print row
 
-# anios_vs_tempGlobal(c)
+#anios_vs_tempGlobal(c)
+
+
+# g = geocoder.elevation('[-34.593213, -58.437835]')
+# print (g.meters)

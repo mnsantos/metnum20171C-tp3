@@ -72,7 +72,7 @@ def temperaturas_global(anios, c):
 		rows = c.fetchall()
 		for row in rows:
 			temps.append(row[0])
-	temps = np.array(temps).reshape(len(temps), 1)
+	#temps = np.array(temps).reshape(len(temps), 1)
 	return temps
 
 def ciudades_de_pais(pais, anios, c):
