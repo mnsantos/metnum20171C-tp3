@@ -89,6 +89,22 @@ def ciudades_anios(ciudades, anios, c):
 		temps.append(ts)
 	return temps
 
+def ciudades_meses(ciudades, anios, c):
+	temps = []
+	for anio in anios:
+		ts = []
+		for ciudad in ciudades:
+			query = "SELECT tempProm, latitud, longitud FROM Ciudades WHERE ciudad = '{}' AND date(fecha) BETWEEN '{}-01-00 00:00:00' AND '{}-12-31 00:00:00'".format(ciudad, anio, anio)
+			c.execute(query)
+			rows = c.fetchall()
+			temps_anio = []
+			for row in rows:
+				temps_anio.append(row[0])
+			temp_prom = sum(temps_anio)/len(temps_anio)
+			ts = ts + [temp_prom,rows[0][1], rows[0][2]]
+		temps.append(ts)
+	return temps
+
 # def temperaturas_ciudad_anios(ciudad, anios, c):
 # 	temps = []
 # 	for anio in anios:
