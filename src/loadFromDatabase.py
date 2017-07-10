@@ -25,7 +25,7 @@ def insertartMedicionesPaises(databaseName):
 						fecha = datetime.strptime(row['dt'], '%Y-%m-%d')
 						tempProm = float(row['AverageTemperature'])
 						tempPromE = float(row['AverageTemperatureUncertainty'])
-						pais = row['Country']
+						pais = row['Country'].decode("utf-8")
 
 						cur.execute("INSERT INTO Paises VALUES(?,?,?,?)", (fecha,tempProm,tempPromE,pais))
 						#print (fecha,tempProm,tempPromE,pais)
@@ -60,8 +60,8 @@ def insertartMedicionesCiudades(databaseName):
 						fecha = datetime.strptime(row['dt'], '%Y-%m-%d')
 						tempProm = float(row['AverageTemperature'])
 						tempPromE = float(row['AverageTemperatureUncertainty'])
-						ciudad = row['City']
-						pais = row['Country']
+						ciudad = row['City'].decode('utf-8')
+						pais = row['Country'].decode('utf-8')
 						if (row['Latitude'][-1] == 'S'):
 							lat = -float(row['Latitude'][:-1])
 						else:
@@ -118,10 +118,9 @@ insertartMedicionesPaises("temperaturas.db")
 insertartMedicionesCiudades("temperaturas.db")
 insertartMedicionesMundo("temperaturas.db")
 
-#conn = lite.connect("temperaturas.db")
-#c = conn.cursor()
-#c.execute("SELECT * FROM Paises")
-#rows = c.fetchall()
-#
-#for row in rows:
-#	print row
+# conn = lite.connect("temperaturas.db")
+# c = conn.cursor()
+# c.execute("SELECT DISTINCT ciudad, latitud, longitud FROM Ciudades WHERE ciudad IN ('Lima','Cochabamba','Moscow','New_York', 'Cordoba','Santiago_Del_Estero','Helsinki','Sydney','Riyadh','Lusaka','Jujuy')")
+# rows = c.fetchall()
+# for row in rows:
+# 	print row
