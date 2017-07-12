@@ -4,12 +4,15 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error
 from queries import *
-import geocoder
+#import geocoder
 from graphics import *
+import math
+from sklearn.model_selection import KFold
 #from geopy.distance import vincenty
 
 def cml(filas, b):
 	A = np.vstack(filas)
+	#print A, b
 	coeficients = np.linalg.lstsq(A, b)[0]
 	return coeficients.tolist()
 
@@ -193,27 +196,60 @@ def cross_validation_ciudades_meses_v2(anios_train_inicio, anios_train_fin, anio
 	graficar_lineas(temperaturas_ciudad_objetivo_anios, predicciones, labels, 'Temperatura ciudad real')
 
 def cross_validation_anios_global(anios_train, anios_test, grado):
+
+	#print anios_train, anios_test, grado
+
 	temperaturas_globales_train = temperaturas_global(anios_train, c)
 
 	#print temperaturas_globales_train
 
-	fs = [pol_grado_n(grado,x) for x in anios_train]
+	#fs = [pol_grado_n(grado,x) for x in anios_train]
+	#fs = [pol_grado_n(grado,x) + [math.sin(x), math.cos(x)] for x in anios_train]
+	fs = [pol_grado_n(grado,x) + [math.cos(x)] for x in anios_train]
+	#fs = [[math.sin(x), math.cos(x), 1] for x in anios_train]
+	#fs = [[math.sin(x), 1] for x in anios_train]
+	#fs = [[math.cos(x), 1] for x in anios_train]
 	coeficientes = cml(fs, temperaturas_globales_train)
 
+
 	#print coeficientes
+	predicciones_train = []
+	predicciones_test = []
 	predicciones = []
-	anios = anios_train + anios_test
+	anios = np.concatenate([anios_train, anios_test])
 	for anio in anios:
+
 		#print pol_grado_n(grado,anio)
-		#print coeficientes
-		prediccion = np.dot(pol_grado_n(grado,anio), coeficientes)
+		#prediccion = np.dot(pol_grado_n(grado,anio), coeficientes)
+		#prediccion = np.dot(pol_grado_n(grado,anio) + [math.sin(anio), math.cos(anio)], coeficientes)
+		prediccion = np.dot(pol_grado_n(grado,anio) + [math.cos(anio)], coeficientes)
+		#prediccion = np.dot([math.sin(anio), math.cos(anio), 1], coeficientes)
+		#prediccion = np.dot([math.sin(anio), 1], coeficientes)
+		#prediccion = np.dot([math.cos(anio), 1], coeficientes)
+		if (anio in anios_train):
+			predicciones_train.append(prediccion)
+		else:
+			predicciones_test.append(prediccion)
 		predicciones.append(prediccion)
 
 	temperaturas_globales_test = temperaturas_global(anios_test, c)
 	temperaturas_globales = temperaturas_globales_train + temperaturas_globales_test
 
-	graficar_lineas(temperaturas_globales, predicciones, anios, 'Temperatura global real', 'aproximacion.png')
+	graficar_lineas(temperaturas_globales, predicciones_train, predicciones_test, anios, 'Temperatura global real', 'aproximacion.png')
 	return mse(temperaturas_globales, predicciones)
+
+def cross_validation(fechas, splits, functionToRun, args):
+	fechas = np.array(fechas)
+	kf = KFold(n_splits=splits)
+	kf.get_n_splits(fechas)
+	mse_list = []
+	for train_index, test_index in kf.split(fechas): 
+		#print("TRAIN:", train_index, "TEST:", test_index)
+		fechas_train, fechas_test = fechas[train_index], fechas[test_index]
+		mse = perform(functionToRun, fechas_train, fechas_test, args)
+		mse_list.append(mse)
+	#print mse_list
+	return sum(mse_list)/len(mse_list)
 
 def buscar_mejor_grado(anios_train, anios_test):
 	min = cross_validation_anios_global(anios_train, anios_test, 1)
@@ -226,6 +262,9 @@ def buscar_mejor_grado(anios_train, anios_test):
 			min = mse
 			grado_min = grado
 	return grado_min
+
+def perform(fun, *args):
+    return fun(*args)
 
 def pol_grado_n(n, x):
 	return [x ** i for i in range(0,n+1)] 
@@ -285,7 +324,7 @@ def aproximacion_altura_dist_latitud(ciudad, fecha, c):
 conn = lite.connect("temperaturas.db")
 c = conn.cursor()
 
-#anios = anios_global(c)
+anios = anios_global(c)
 #anios = anios[len(anios)/2:-1]
 #print anios
 #anios_train = anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)]
@@ -295,7 +334,7 @@ c = conn.cursor()
 #anios_test = anios[(len(anios)/2):-1]
 #print anios_test
 #buscar_mejor_grado(anios_train, anios_test)
-#print cross_validation_anios_global(anios_train, anios_test, 2)
+#print cross_validation_anios_global(anios_train, anios_test, 1)
 # paises = ['Argentina', 'Guatemala', 'Canada', 'Congo', 'Poland', 'China', 'Australia']
 # cross_validation_paises_estacion_global([1980,1981,1982,1983,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994],paises,[1995,1996,1997,1998,1999,2000,2001,2002],c)
 
@@ -303,10 +342,10 @@ c = conn.cursor()
 
 #Aca estan los tres puntos del TP funcionando bien.
 #print cross_validation_anios_global(anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)], anios[(len(anios)/2)+(len(anios)/4):-1], 2)
-paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
-cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
+#paises = ['Argentina', 'Canada', 'South_Africa', 'Norway','Russia', 'China', 'Australia', 'Japan']
+#cross_validation_paises_promedio_global_v2(1980,1995,1996,2012,paises,c)
 # cross_validation_ciudades_meses_v2(1980,1981,1992,1993,['Canberra', 'Hobart', 'Sydney'],'Santiago_Del_Estero',c)
-aproximacion_altura_dist_latitud('Corrientes', '1990-04-01 00:00:00', c)
+#aproximacion_altura_dist_latitud('Corrientes', '1990-04-01 00:00:00', c)
 
 # print ciudades_de_pais('Argentina', [1990], c)
 # newport_ri = (41.49008, -71.312796)
@@ -323,3 +362,5 @@ aproximacion_altura_dist_latitud('Corrientes', '1990-04-01 00:00:00', c)
 
 # g = geocoder.elevation('[-34.593213, -58.437835]')
 # print (g.meters)
+
+print cross_validation(anios, 2, cross_validation_anios_global, 1)
