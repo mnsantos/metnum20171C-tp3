@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def graficar_lineas(actual_temps, predicted_temps_train, predicted_temps_test, years, actual_label, name):
-	print years, actual_temps
+	#print years, actual_temps
 	#plt.ticklabel_format(useOffset=False)	
 	plt.plot(years, actual_temps, label=actual_label, color='blue')
 	#print len(predicted_temps_train), len(predicted_temps_test), len(years)

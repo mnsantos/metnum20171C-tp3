@@ -59,9 +59,11 @@ def temperaturas_promedio_anios(paises, anios, c):
 			temps_anio = []
 			for row in rows:
 				temps_anio.append(row[0])
+			if (len(temps_anio) == 0):
+				raise Exception("No se encuentra temperatura para el pais {} en el anio {}". format(p,anio))
 			ts.append(sum(temps_anio) / len(temps_anio))
 		temps.append(ts)
-	temps = np.array(temps)
+	temps
 	return temps
 
 def temperaturas_global(anios, c):

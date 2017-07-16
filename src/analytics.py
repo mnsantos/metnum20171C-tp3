@@ -17,6 +17,7 @@ def cml(filas, b):
 	return coeficients.tolist()
 
 def mse(actualValues, predictions):
+	#print actualValues, predictions
 	return mean_squared_error(actualValues, predictions)
 
 def distancia(lat1,long1,lat2,long2):
@@ -51,17 +52,21 @@ def cross_validation_paises_estacion_global(anios_train, paises, anios_test, c):
 	#print temperaturas_global_anios
 	graficar_lineas(temperaturas_global_anios, predicciones, anios, 'Temperatura global real')
 
-def cross_validation_paises_promedio_global(anios_train, paises, anios_test, c):
+def cross_validation_paises_promedio_global(anios_train, anios_test, paises, graficar=False):
+	print anios_train, anios_test, paises
+
 	A = temperaturas_promedio_anios(paises, anios_train, c)
+	#A = temperaturas_anios_train
 	#print A
 	b = temperaturas_global(anios_train, c)
 	#print len(b)
 	coeficientes = cml(A, b)
 
-	print coeficientes
-	anios = anios_train + anios_test
+	#print coeficientes
+	anios = np.concatenate([anios_train, anios_test])
 
 	temperaturas_paises_test = temperaturas_promedio_anios(paises, anios_test, c)
+	#temperaturas_paises_test = temperaturas_anios_test
 	temperaturas_global_test = temperaturas_global(anios_test, c)
 
 	temperaturas_paises_anios = A + temperaturas_paises_test 
@@ -70,12 +75,21 @@ def cross_validation_paises_promedio_global(anios_train, paises, anios_test, c):
 	#print temperaturas_global_anios
 
 	predicciones = []
-	for temp in temperaturas_paises_anios:
+	predicciones_train = []
+	predicciones_test = []
+	for (temp, anio) in zip(temperaturas_paises_anios, anios):
 		prediccion = np.dot(temp, coeficientes)
+		if (anio in anios_train):
+			predicciones_train.append(prediccion)
+		else:
+			predicciones_test.append(prediccion)
 		predicciones.append(prediccion)
 	#print predicciones
 	#print temperaturas_global_anios
-	graficar_lineas(temperaturas_global_anios, predicciones, anios, 'Temperatura global real')
+
+	if graficar and anios_test[-1] == 2012 :
+		graficar_lineas(temperaturas_global_anios, predicciones_train, predicciones_test, anios, 'Temperatura global real', 'aproximacion.png')
+	return mse(temperaturas_global_test, predicciones_test) 
 
 def cross_validation_paises_promedio_global_v2(anios_train_inicio, anios_train_fin, anios_test_inicio, anios_test_fin, paises, c):
 	anios = range(anios_train_inicio, anios_train_fin+1)
@@ -195,37 +209,27 @@ def cross_validation_ciudades_meses_v2(anios_train_inicio, anios_train_fin, anio
 	print labels
 	graficar_lineas(temperaturas_ciudad_objetivo_anios, predicciones, labels, 'Temperatura ciudad real')
 
-def cross_validation_anios_global(anios_train, anios_test, grado):
+def cross_validation_anios_global(anios_train, anios_test, metodo, grado_pol, grado_pol_tri, graficar=False):
 
-	#print anios_train, anios_test, grado
+	#print anios_train, anios_test, grado_pol, grado_pol_tri
 
 	temperaturas_globales_train = temperaturas_global(anios_train, c)
 
 	#print temperaturas_globales_train
 
-	#fs = [pol_grado_n(grado,x) for x in anios_train]
-	#fs = [pol_grado_n(grado,x) + [math.sin(x), math.cos(x)] for x in anios_train]
-	fs = [pol_grado_n(grado,x) + [math.cos(x)] for x in anios_train]
-	#fs = [[math.sin(x), math.cos(x), 1] for x in anios_train]
-	#fs = [[math.sin(x), 1] for x in anios_train]
-	#fs = [[math.cos(x), 1] for x in anios_train]
+	fs = [metodo_anios_global(metodo, grado_pol, grado_pol_tri, anio) for anio in anios_train]
 	coeficientes = cml(fs, temperaturas_globales_train)
 
 
+	#print fs
 	#print coeficientes
 	predicciones_train = []
 	predicciones_test = []
 	predicciones = []
 	anios = np.concatenate([anios_train, anios_test])
 	for anio in anios:
+		prediccion = np.dot(metodo_anios_global(metodo, grado_pol, grado_pol_tri, anio), coeficientes)
 
-		#print pol_grado_n(grado,anio)
-		#prediccion = np.dot(pol_grado_n(grado,anio), coeficientes)
-		#prediccion = np.dot(pol_grado_n(grado,anio) + [math.sin(anio), math.cos(anio)], coeficientes)
-		prediccion = np.dot(pol_grado_n(grado,anio) + [math.cos(anio)], coeficientes)
-		#prediccion = np.dot([math.sin(anio), math.cos(anio), 1], coeficientes)
-		#prediccion = np.dot([math.sin(anio), 1], coeficientes)
-		#prediccion = np.dot([math.cos(anio), 1], coeficientes)
 		if (anio in anios_train):
 			predicciones_train.append(prediccion)
 		else:
@@ -235,8 +239,9 @@ def cross_validation_anios_global(anios_train, anios_test, grado):
 	temperaturas_globales_test = temperaturas_global(anios_test, c)
 	temperaturas_globales = temperaturas_globales_train + temperaturas_globales_test
 
-	graficar_lineas(temperaturas_globales, predicciones_train, predicciones_test, anios, 'Temperatura global real', 'aproximacion.png')
-	return mse(temperaturas_globales, predicciones)
+	if graficar and anios_test[-1] == 2012 :
+		graficar_lineas(temperaturas_globales, predicciones_train, predicciones_test, anios, 'Temperatura global real', 'aproximacion.png')
+	return mse(temperaturas_globales_test, predicciones_test)
 
 def cross_validation(fechas, splits, functionToRun, args):
 	fechas = np.array(fechas)
@@ -246,7 +251,8 @@ def cross_validation(fechas, splits, functionToRun, args):
 	for train_index, test_index in kf.split(fechas): 
 		#print("TRAIN:", train_index, "TEST:", test_index)
 		fechas_train, fechas_test = fechas[train_index], fechas[test_index]
-		mse = perform(functionToRun, fechas_train, fechas_test, args)
+		print fechas_train, fechas_test
+		mse = perform(functionToRun, fechas_train, fechas_test, *args)
 		mse_list.append(mse)
 	#print mse_list
 	return sum(mse_list)/len(mse_list)
@@ -269,10 +275,52 @@ def perform(fun, *args):
 def pol_grado_n(n, x):
 	return [x ** i for i in range(0,n+1)] 
 
+def pol_grado_n_v2(n, x):
+	return [(x/20.0) ** i for i in range(0,n+1)] 
+
+def pol_trigo_grado_n(n, x):
+	return [ math.sin(i*x) for i in range(1,n+1)] + [ math.cos(i*x) for i in range(1,n+1)] + [1]
+
+def pol_trigo_grado_n_v2(n, x):
+	return [ math.sin(i*x) * math.cos(i*x) for i in range(1,n+1)] + [1]
+
 def anios_vs_tempGlobal(c):
 	anios = anios_global(c)
 	temperaturas_globales = temperaturas_global(anios, c)
 	graficar(anios, temperaturas_globales, "Años".decode('utf-8'), "Temperatura global", "anios_vs_tempGlobal")
+
+def mses_anios_global(anios):
+	metodos = range(1,4)
+
+	mses = []
+	for metodo in metodos:
+		print "probando metodo " + str(metodo)
+		if metodo == 1:
+			for i in range(1,6):
+				mse = cross_validation(anios, 10, cross_validation_anios_global, [metodo, i, 0])
+				print "metodo {}. Iteracion: {}. Resultado: {}".format(str(metodo), i, mse) 
+				mses.append(mse)
+		elif metodo == 2:
+			for i in range(1,6):
+				mse = cross_validation(anios, 10, cross_validation_anios_global, [metodo, 0, i])
+				mses.append(mse)
+				print "metodo {}. Iteracion: {}. Resultado: {}".format(str(metodo), i, mse) 
+		elif metodo == 3:
+			for i in range(1,10):
+				mse = cross_validation(anios, 10, cross_validation_anios_global, [metodo, 2, i])
+				mses.append(mse)
+				print "metodo {}. Iteracion: {}. Resultado: {}".format(str(metodo), i, mse)  
+	return mses
+
+
+def metodo_anios_global(metodo, grado_pol, grado_pol_tri, anio):
+	if metodo == 1:
+		return pol_grado_n(grado_pol,anio)
+	elif metodo == 2:
+		return pol_trigo_grado_n(grado_pol_tri,anio)
+	elif metodo == 3:
+		return pol_trigo_grado_n(grado_pol_tri,anio) + pol_grado_n_v2(grado_pol,anio)
+
 
 def aproximacion_altura_dist_latitud(ciudad, fecha, c):
 #def aproximacion_altura_dist_latitud(anios_train_inicio, anios_train_fin, anios_test_inicio, anios_test_fin, c):
@@ -320,11 +368,37 @@ def aproximacion_altura_dist_latitud(ciudad, fecha, c):
 
 	print ciudad, temp_real, temp_aproximada
 
+def aproximacion_paises_global(anios):
+
+# \item Sudamérica: Argentina, Brasil, Venezuela, Peru, Bolivia
+# \item Norteamérica + Centroamérica: Eestados Unidos, Canada, Mexico, Cuba, Nicaragua
+# \item Europa: Noruega, Portugal, Grecia, Ucrania, Alemania	
+# \item Asia: Rusia, China, Mongolia, Japon, India
+# \item África: Sudafrica, Egipto, Congo, Somalia, Nigeria
+# \item Oceanía: Australia, Nueva Zelanda, Papua Nueva Guinea, Samoa, Tonga
+
+	paises1 = ['Argentina', 'Brazil', 'Venezuela', 'Chile', 'Bolivia']
+	paises2 = ['United_States', 'Canada', 'Mexico', 'Cuba', 'Nicaragua']
+	paises3 = ['Norway', 'Portugal', 'Greece', 'Ukraine', 'Germany']
+	paises4 = ['Russia', 'China', 'Mongolia', 'Japan', 'India']
+	paises5 = ['South_Africa', 'Egypt', 'Congo_(Democratic_Republic_Of_The)', 'Somalia', 'Nigeria']
+	paises6 = ['Australia', 'New_Zealand', 'Papua_New_Guinea', 'Samoa', 'Tonga']
+	paises = [paises1, paises2, paises3, paises4, paises5, paises6]
+	#paises = [paises6]
+	mses = []
+	for ps in paises:
+		mse = cross_validation(anios, 5, cross_validation_paises_promedio_global, [ps])
+		print "Mse para {}: {}".format(ps, mse)
+		mses.append(mse)
+	return mses
+
+
 
 conn = lite.connect("temperaturas.db")
 c = conn.cursor()
 
-anios = anios_global(c)
+#anios = anios_global(c)
+anios = range(1890,2013)
 #anios = anios[len(anios)/2:-1]
 #print anios
 #anios_train = anios[len(anios)/2:(len(anios)/2)+(len(anios)/4)]
@@ -363,4 +437,16 @@ anios = anios_global(c)
 # g = geocoder.elevation('[-34.593213, -58.437835]')
 # print (g.meters)
 
-print cross_validation(anios, 2, cross_validation_anios_global, 1)
+#print cross_validation(anios, 1, cross_validation_anios_global, [1, 5])
+#print cross_validation_anios_global(anios_train, anios_test, 1, 5)
+
+# Aproximacion global anios
+#mses_anios_global(anios)
+
+# Aproximacion global paises
+#aproximacion_paises_global(anios)
+
+anios_train = range(1890,1988)
+anios_test = range(1988,2013)
+paises = ['Russia', 'China', 'Mongolia', 'Japan', 'India']
+cross_validation_paises_promedio_global(anios_train, anios_test, paises, True)
