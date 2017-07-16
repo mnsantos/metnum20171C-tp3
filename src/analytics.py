@@ -257,6 +257,28 @@ def cross_validation(fechas, splits, functionToRun, args):
 	#print mse_list
 	return sum(mse_list)/len(mse_list)
 
+def cross_validation_v2(fechas, anios_train, salto, functionToRun, args):
+	mse_list = []
+	for anio_train in anios_train:
+		print "Corriendo cross validation con {} anios de entrenamiento".format(anio_train)
+		mses = []
+		train_test = []
+		start_index = 0
+		while (start_index + anio_train + 10) < len(fechas):
+			train = fechas[start_index:start_index+anio_train]
+			test = fechas[start_index+anio_train:start_index+anio_train+10]
+			start_index = start_index + salto
+			train_test.append([train, test])
+		for train, test in train_test:
+			#print "Anios entrenamiento: {}".format(train)
+			#print "Anios test: {}".format(test)
+			mse = perform(functionToRun, train, test, *args)
+			mses.append(mse)
+	#print mse_list
+		mse_prom = sum(mses)/len(mses)
+		mse_list.append(mse_prom)
+	return mse_list
+
 def buscar_mejor_grado(anios_train, anios_test):
 	min = cross_validation_anios_global(anios_train, anios_test, 1)
 	grado_min = 1
@@ -387,7 +409,7 @@ def aproximacion_paises_global(anios):
 	#paises = [paises6]
 	mses = []
 	for ps in paises:
-		mse = cross_validation(anios, 5, cross_validation_paises_promedio_global, [ps])
+		mse = cross_validation_v2(anios, [10,15,20], 5, cross_validation_paises_promedio_global, [ps])
 		print "Mse para {}: {}".format(ps, mse)
 		mses.append(mse)
 	return mses
@@ -437,16 +459,16 @@ anios = range(1890,2013)
 # g = geocoder.elevation('[-34.593213, -58.437835]')
 # print (g.meters)
 
-#print cross_validation(anios, 1, cross_validation_anios_global, [1, 5])
+#print cross_validation_v2(anios, [10,15,20], 5, cross_validation_anios_global, [1, 5])
 #print cross_validation_anios_global(anios_train, anios_test, 1, 5)
 
 # Aproximacion global anios
 #mses_anios_global(anios)
 
 # Aproximacion global paises
-#aproximacion_paises_global(anios)
+aproximacion_paises_global(anios)
 
-anios_train = range(1890,1988)
-anios_test = range(1988,2013)
-paises = ['Russia', 'China', 'Mongolia', 'Japan', 'India']
-cross_validation_paises_promedio_global(anios_train, anios_test, paises, True)
+# anios_train = range(1890,1988)
+# anios_test = range(1988,2013)
+# paises = ['Russia', 'China', 'Mongolia', 'Japan', 'India']
+# cross_validation_paises_promedio_global(anios_train, anios_test, paises, True)
